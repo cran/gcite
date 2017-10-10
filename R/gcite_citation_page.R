@@ -11,7 +11,7 @@
 #' @importFrom httr stop_for_status
 #' @importFrom stats reshape
 #' @examples 
-#' \dontrun{
+#' if (!is_travis()) {
 #' library(httr)
 #' library(rvest)
 #' url = paste0("https://scholar.google.com/citations?view_op=view_citation&", 
@@ -21,7 +21,7 @@
 #' ind = gcite_citation_page(url)
 #' doc = content(httr::GET(url))
 #' ind = gcite_citation_page(doc)
-#' ind_nodes = html_nodes(doc, "#gsc_table div")
+#' ind_nodes = html_nodes(doc, "#gsc_vcd_table div")
 #' ind_nodes = html_nodes(ind_nodes, xpath = '//div[@class = "gs_scl"]')  
 #' ind = gcite_citation_page(ind_nodes)
 #' }
@@ -39,10 +39,11 @@ gcite_citation_page.xml_nodeset = function(doc, title = NULL, ...) {
 #' @export
 gcite_citation_page.xml_document = function(doc, title = NULL, ...) {
   if (is.null(title)) {
-    title = html_nodes(doc, "#gsc_title")
+    title = html_nodes(doc, "#gsc_vcd_title")
     title = html_text(title)
   }
-  doc = html_nodes(doc, "#gsc_table div")
+  # doc = html_nodes(doc, "#gsc_table div")
+  doc = html_nodes(doc, "#gsc_vcd_table div")
   doc = html_nodes(doc, xpath = '//div[@class = "gs_scl"]')  
   gcite_citation_page(doc, title = title, ...)
 }
@@ -66,15 +67,29 @@ gcite_citation_page.list = function(doc, title = NULL, ...) {
 #' @export
 gcite_citation_page.default = function(doc, title = NULL, ...) {
   
-  fields = html_nodes(doc, xpath = '//div[@class = "gsc_field"]')
+  # fields = html_nodes(doc, xpath = '//div[@class = "gsc_field"]')
+  fields = html_nodes(doc, xpath = '//div[@class = "gsc_vcd_field"]')
   fields = html_text(fields)
   
-  vals = html_nodes(doc, xpath = '//div[@class = "gsc_value"]')
+  # vals = html_nodes(doc, xpath = '//div[@class = "gsc_value"]')
+  vals = html_nodes(doc, xpath = '//div[@class = "gsc_vcd_value"]')
   vals = html_text(vals)
   df = data.frame(field = fields, value = vals, stringsAsFactors = FALSE)
-  keep_fields = c("authors", "publication date", "journal", "volume", "issue", 
-                  "pages", "publisher", "description")
+  keep_fields = c("authors", "publication date", 
+                  "journal", "volume", "issue", 
+                  "pages", "publisher", "description",
+                  "total citations")
   df$field = tolower(df$field)
+  
+  #############################
+  # need different way to get total citations
+  #############################  
+  cites = html_nodes(doc, xpath = '//a[@class = "gsc_oms_link"]')
+  cites = html_text(cites)
+  cites = cites[ grep("cited", tolower(cites))]
+  cites = trimws(sub("Cited by", "", cites))
+  
+  df$value[ df$field %in% "total citations" ] = cites
   df = df[ df$field %in% 
              keep_fields,]
   
@@ -91,7 +106,7 @@ gcite_citation_page.default = function(doc, title = NULL, ...) {
   }
   wide$title = title
   
-  citations = rvest::html_node(doc, css = "#gsc_graph_bars")
+  citations = rvest::html_node(doc, css = "#gsc_vcd_graph_bars")
   citations = citations[!is.na(citations)]
   if ( length(citations) > 0) {
     citations = citations[[1]]

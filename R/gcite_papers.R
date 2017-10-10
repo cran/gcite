@@ -9,7 +9,7 @@
 #' @importFrom rvest html_table html_nodes
 #' @importFrom stats reshape
 #' @examples 
-#' \dontrun{
+#' if (!is_travis()) {
 #' library(httr)
 #' library(rvest) 
 #' url = "https://scholar.google.com/citations?user=T9eqZgMAAAAJ"
@@ -58,16 +58,29 @@ gcite_papers.default = function(doc, ...) {
     x
   })
   parse_a = function(a) {
-    a = cbind(value = a, 
-              href = attr(a, "href"),
+    href = attr(a, "data-href")
+    if (is.null(href)) {
+      href = attr(a, "href")
+    }
+    value = a
+    if (length(value) == 0) {
+      value = NA
+    }
+    a = cbind(value = value, 
+              # href = attr(a, "href"),
+              href = href,
               class = attr(a, ".class"))
     a = data.frame(a, stringsAsFactors = FALSE)
   }
-  fake_a_df = data.frame(title = NA, 
-                         title_link = NA, n_citations = NA,
-                         n_citations_link = NA)
-  all_a = lapply(tab, function(x) {
-    # print(x)
+  fake_a_df = data.frame(
+    title = NA, 
+    title_link = NA, 
+    n_citations = NA,
+    n_citations_link = NA)
+  # i=1
+  get_data = function(x) {
+    # print(i)
+    # i <<- i +1
     nx = names(x)
     a = nx == "a"
     a = lapply(x[a], parse_a)
@@ -78,6 +91,7 @@ gcite_papers.default = function(doc, ...) {
     a$id = 1
     a$value = trimws(a$value)
     a$href = trimws(a$href)
+    a$class[ grepl("gsc_a_ac", a$class)] = "gsc_a_ac"
     a = reshape(a, direction = "wide", idvar = "id", 
                 timevar = "class", v.names = c("value", "href"))
     cn = colnames(a)
@@ -85,12 +99,28 @@ gcite_papers.default = function(doc, ...) {
     cn[ cn == "value.gsc_a_ac"] = "n_citations"
     cn[ cn == "href.gsc_a_at"] = "title_link"
     cn[ cn == "href.gsc_a_ac"] = "n_citations_link"
+    # Bug fix https://github.com/muschellij2/gcite/issues/1
+    cn[ cn == "href.gsc_a_ac gsc_a_acm"] = "n_citations_link"
+    cn[ cn == "value.gsc_a_ac gsc_a_acm"] = "n_citations"
+    
     colnames(a) = cn
+    # print(cn)
     a$id = NULL
+    get_cols = c("title", "title_link", "n_citations", "n_citations_link")
+    not_there = setdiff(get_cols, colnames(a))
+    if (length(not_there) > 0) {
+      warning(paste0("There is an odd error here with parsing an ", 
+                     "individual page, please submit bug to ",
+                     "https://github.com/muschellij2/gcite/issues"))
+      for (i in not_there) {
+        a[, i] = NA
+      }
+    }
     a = a[, c("title", "title_link", "n_citations", "n_citations_link")]
     
     a
-  })
+  }
+  all_a = lapply(tab, get_data)
   all_a = do.call("rbind", all_a)
   rownames(all_a) = NULL
   

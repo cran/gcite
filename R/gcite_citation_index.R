@@ -8,7 +8,7 @@
 #' @export
 #' @importFrom rvest html_table html_nodes
 #' @examples
-#' \dontrun{ 
+#' if (!is_travis()) {
 #' library(httr)
 #' library(rvest) 
 #' library(gcite)
@@ -27,7 +27,11 @@ gcite_citation_index <- function(doc, ...){
 #' @rdname gcite_citation_index
 #' @export
 gcite_citation_index.xml_node = function(doc, ...) {
-  rvest::html_table(doc)
+  df = rvest::html_table(doc)
+  if (ncol(df) > 0) {
+    colnames(df)[1] = "index"
+  }
+  return(df)
 }
 
 #' @rdname gcite_citation_index
