@@ -4,18 +4,30 @@
 \alias{gcite_author_info}
 \title{Getting User Information from name}
 \usage{
-gcite_author_info(author, verbose = TRUE, ask = TRUE, secure = TRUE, ...)
+gcite_author_info(author, ask = TRUE, pagesize = 100, verbose = TRUE,
+  secure = TRUE, force = FALSE, read_citations = TRUE, sleeptime = 0,
+  ...)
 }
 \arguments{
 \item{author}{author name separated by spaces}
 
-\item{verbose}{Verbose diagnostic printing}
-
 \item{ask}{If multiple authors are found, should a menu be given}
+
+\item{pagesize}{Size of pages, max 100, passed to \code{\link{gcite_url}}}
+
+\item{verbose}{Print diagnostic messages}
 
 \item{secure}{use https vs. http}
 
-\item{...}{arguments passed to \code{\link{gcite_user_info}}}
+\item{force}{If passing a URL and there is a failure, should the 
+program return \code{NULL}, passed to \code{\link{gcite_citation_page}}}
+
+\item{read_citations}{Should all citation pages be read?}
+
+\item{sleeptime}{time in seconds between http requests, 
+to avoid Google Scholar rate limit}
+
+\item{...}{Additional arguments passed to \code{\link{GET}}}
 }
 \value{
 A list of citations, citation indices, and a 
@@ -27,7 +39,12 @@ Calls \code{\link{gcite_user_info}} after getting the user
 identifier
 }
 \examples{
+\dontrun{
 if (!is_travis()) {
 df = gcite_author_info(author = "John Muschelli", secure = FALSE)
 }
+}
+if (!is_travis()) {
+df = gcite_author_info(author = "Jiawei Bai", secure = FALSE)
+} 
 }
