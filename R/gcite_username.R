@@ -1,5 +1,5 @@
 #' @name gcite_username
-#' @title Google Citation Username Seracher
+#' @title Google Citation Username Searcher
 #' @description Search Google Citation for an author username
 #' @param author author name separated by spaces
 #' @param verbose Verbose diagnostic printing
@@ -9,7 +9,7 @@
 #' 
 #' @return A character vector of the username of the author
 #' @examples
-#' if (!is_travis()) {
+#' if (!is_travis() & !is_cran()) {
 #' gcite_username("John Muschelli")
 #' }
 #' @export
@@ -32,16 +32,25 @@ gcite_username <- function(
   )
   
   res = httr::GET(url = url, ...)
-  stop_for_status(res)
+  httr::stop_for_status(res)
   doc = httr::content(res)
   
   
   # doc = html_nodes(doc, ".gs_scl")
   doc = html_nodes(doc, ".gsc_1usr")
+  if (length(doc) == 0) {
+    stop(paste0("No names found, see: ", url))
+  }
   # doc = html_nodes(doc, xpath = '//div[ @class= "gsc_1usr_text"]')
   
   # users = html_nodes(doc, xpath = '//h3[ @class = "gsc_1usr_name"]//a')
-  users = html_nodes(doc, ".gsc_oai_name")
+  users = html_nodes(doc, ".gs_ai_name")
+  if (length(users) == 0) {
+    warning("No users, this may be a bug in gcite due to changing", 
+            " Google website, please open an issue at ",
+            "https://github.com/muschellij2/gcite/issues")
+  }
+  # users = html_nodes(doc, ".gs_ai_pho")
   hrefs = html_attr(html_nodes(users, "a"), "href")
   unames = sapply(hrefs, function(x){
     x = parse_url(x)
@@ -87,7 +96,8 @@ gcite_username <- function(
       choice <- menu(dat$fullnames,
                      title = "More than One Author, Please Choose")
       if (choice == 0) {
-        return("No Choice given, skipped")        
+        message("No Choice given, skipped")
+        return(NULL)        
       }
     } else {
       warning("Multiple authors found, first chosen")

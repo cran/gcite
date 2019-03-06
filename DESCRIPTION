@@ -1,8 +1,8 @@
 Package: gcite
 Type: Package
 Title: Google Citation Parser
-Version: 0.9.3
-Date: 2018-11-15
+Version: 0.10.1
+Date: 2019-03-05
 Authors@R: c(person(given = "John",
            family = "Muschelli",
            email = "muschellij2@gmail.com",
@@ -15,12 +15,13 @@ LazyData: true
 LazyLoad: yes
 Imports: xml2, httr, rvest, stats, pbapply, data.table, wordcloud, tm,
         graphics
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 Encoding: UTF-8
-Suggests: covr, testthat
+Suggests: covr, testthat, spelling
+Language: en-US
 NeedsCompilation: no
-Packaged: 2018-11-19 23:31:49 UTC; johnmuschelli
+Packaged: 2019-03-06 18:18:29 UTC; johnmuschelli
 Author: John Muschelli [aut, cre] (<https://orcid.org/0000-0001-6469-1750>)
 Maintainer: John Muschelli <muschellij2@gmail.com>
 Repository: CRAN
-Date/Publication: 2018-11-20 00:10:07 UTC
+Date/Publication: 2019-03-06 23:52:52 UTC
