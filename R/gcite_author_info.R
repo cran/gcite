@@ -12,7 +12,7 @@
 #' @param read_citations Should all citation pages be read?
 #' @param sleeptime time in seconds between http requests, 
 #' to avoid Google Scholar rate limit 
-#' @param ... Additional arguments passed to \code{\link{GET}}
+#' @param ... Additional arguments passed to \code{\link[httr]{GET}}
 #'
 #' @return A list of citations, citation indices, and a 
 #' \code{data.frame} of authors, journal, and citations, and a 
@@ -21,12 +21,12 @@
 #'
 #' @examples \dontrun{
 #' if (!is_travis()) {
-#' df = gcite_author_info(author = "John Muschelli", secure = FALSE)
+#'   df = gcite_author_info(author = "John Muschelli", secure = FALSE)
 #' }
 #' }
 #' if (!is_travis() & !is_cran()) {
-#' df = gcite_author_info(author = "Jiawei Bai", secure = FALSE)
-#' } 
+#'   df = gcite_author_info(author = "Jiawei Bai", secure = FALSE)
+#' }
 gcite_author_info = function(
   author, 
   ask = TRUE, 
